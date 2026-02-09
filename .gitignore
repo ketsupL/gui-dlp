@@ -1,0 +1,13 @@
+# Environments
+env/
+venv/
+ENV/
+
+# Temporary files
+temp.py
+
+# Data files
+video_data.json
+
+# IDE settings
+.vscode/
