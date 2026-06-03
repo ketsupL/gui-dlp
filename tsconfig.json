@@ -12,6 +12,7 @@
     "isolatedModules": true,
     "resolveJsonModule": true,
     "paths": {
+      "@/*": ["./renderer/*"],
       "@/components/*": ["./renderer/components/*"],
       "@/lib/*": ["./renderer/lib/*"],
       "@/hooks/*": ["./renderer/hooks/*"],
