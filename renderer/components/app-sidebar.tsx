@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+
+import { useSettings } from './settings-provider' 
 import { 
   Sidebar, 
   SidebarContent, 
@@ -9,43 +10,75 @@ import {
 } from "@/components/ui/sidebar"
 
 export function AppSidebar() {
-  const [downloadMode, setDownloadMode] = useState('video')
+  const { settings, setSettings } = useSettings()
+  const { downloadMode, videoQuality, fileExtension } = settings
+
+  const handleSettingChange = (field: string, value: string) => {
+    setSettings(prev => ({
+      ...prev,         // Keep all existing settings
+      [field]: value   // Overwrite the specific setting that changed
+    }))
+  }
 
   return (
     <Sidebar>
-      <SidebarHeader className="p-4 border-b">
-        <h2 className="text-xl font-bold">gui-dlp</h2>
-        <p className="text-sm text-gray-500">Global Settings</p>
+      <SidebarHeader className="h-20 p-4 border-b justify-center">
+        <h2 className="text-xl font-bold">GUI-DLP</h2>
       </SidebarHeader>
       
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>yt-dlp Config</SidebarGroupLabel>
+          <SidebarGroupLabel>Settings</SidebarGroupLabel>
           <SidebarGroupContent className="p-4 flex flex-col gap-4">
-            
-            {/* Example Setting: Mode */}
             <div>
               <label className="text-sm font-medium mb-1 block">Download Mode</label>
               <select 
                 className="w-full p-2 border rounded-md bg-white text-black text-sm"
                 value={downloadMode}
-                onChange={(e) => setDownloadMode(e.target.value)}
+                onChange={(e) => handleSettingChange('downloadMode', e.target.value)}
               >
-                <option value="video">Video + Audio</option>
+                <option value="video+audio">Video + Audio</option>
+                <option value="video">Video Only</option>
                 <option value="audio">Audio Only</option>
               </select>
             </div>
 
-            {/* Example Setting: Quality */}
             <div>
-              <label className="text-sm font-medium mb-1 block">Quality</label>
-              <select className="w-full p-2 border rounded-md bg-white text-black text-sm">
-                <option value="best">Best Available</option>
+              <label className="text-sm font-medium mb-1 block">Video Quality</label>
+              <select 
+                className="w-full p-2 border rounded-md bg-white text-black text-sm"
+                value={videoQuality}
+                onChange={(e) => handleSettingChange('videoQuality', e.target.value)}
+                disabled={downloadMode === 'audio'} // Disable if audio only
+              >
+                <option value="best">Best</option>
                 <option value="1080p">1080p</option>
                 <option value="720p">720p</option>
               </select>
             </div>
 
+            <div>
+              <label className="text-sm font-medium mb-1 block">Extension</label>
+              <select 
+                className="w-full p-2 border rounded-md bg-white text-black text-sm"
+                value={fileExtension}
+                onChange={(e) => handleSettingChange('fileExtension', e.target.value)}
+              >
+                {downloadMode === 'audio' ? (
+                  <>
+                    <option value="mp3">mp3</option>
+                    <option value="m4a">m4a</option>
+                    <option value="wav">wav</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="mp4">mp4</option>
+                    <option value="mkv">mkv</option>
+                    <option value="webm">webm</option>
+                  </>
+                )}
+              </select>
+            </div>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
