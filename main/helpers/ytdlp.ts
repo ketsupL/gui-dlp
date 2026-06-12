@@ -6,12 +6,38 @@ export type DownloadSettings = {
     fileExtension: string;
 }
 
+export type DownloadProgress = {
+    percent: number
+    speed: string | null
+    eta: string | null
+    size: string | null
+    raw?: string
+}
+
+function parseYtDlpProgress(line: string): DownloadProgress | null {
+    const match = line.match(
+        /\[download\]\s+(\d+(?:\.\d+)?)%.*?of\s+([\d.]+\w+).*?at\s+([\w./]+).*?ETA\s+([\w:]+)/
+    )
+
+    if (!match) return null
+
+    const [percent, size, speed, eta] = match
+
+    return {
+        percent: Number(percent),
+        size,
+        speed,
+        eta,
+        raw: line
+    }
+}
+
 export class YtDlpSpawner {
     private static ytdlpPath = 'yt-dlp'
 
     static getMetadata(url: string): Promise<any> {
         return new Promise((resolve, reject) => {
-            const child = spawn(this.ytdlpPath, ['--dump-json', url])
+            const child = spawn(this.ytdlpPath, ['--dump-json', url], { windowsHide: true })
 
             let output = ''
             let errorOutput = ''
@@ -65,21 +91,51 @@ export class YtDlpSpawner {
         return args
     }
 
-    static download(url:string, 
+    static download(
+        url:string, 
         settings: DownloadSettings, 
-        onProgress: (data: string) => void
+        onProgress: (progress: DownloadProgress) => void
     ): Promise<void> {
         return new Promise((resolve, reject) => {
             const args = this.buildArgs(url, settings)
-            const child = spawn(this.ytdlpPath, args);
-
-            child.stdout.on('data', (data) => { onProgress(data.toString()) })
+            const child = spawn(this.ytdlpPath, args, { windowsHide: true });
             
-            child.stderr.on('data', (data) => { console.error(`yt-dlp error: ${data}`) })
+            let errorOutput = ''
+            let buffer = ''
+
+            child.stdout.setEncoding('utf8')
+            child.stderr.setEncoding('utf8')
+
+            child.stdout.on('data', (chunk: string) => {
+                buffer += chunk
+
+                const lines = buffer.split('\n')
+                buffer = lines.pop() ?? ''
+
+                for (const line of lines) {
+                    const progress = parseYtDlpProgress(line)
+
+                    if (progress) {
+                        onProgress(progress)
+                    }
+                }
+            })
+
+            child.stderr.on('data', (data: string) => { errorOutput += data })
+            
+            child.on('error', reject)
             
             child.on('close', (code) => {
-                if (code === 0) resolve()
-                else reject(new Error('yt-dlp download failed'))
+                if (code === 0) {
+                    onProgress({
+                        percent: 100,
+                        speed: null,
+                        eta: '00:00',
+                        size: null,
+                    })
+                    return resolve() 
+                }
+                reject(new Error(errorOutput || 'yt-dlp download failed'))
             })
         })
     }
