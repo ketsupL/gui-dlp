@@ -12,6 +12,7 @@ export function VideoCard({
     onDownload: (id: string) => void
     onDelete: (id: string) => void
 }) {
+    console.log('item: ', item.metadata?.thumbnail)
     return (
         <Card className='flex flex-row items-center justify-between p-4 gap-4 overflow-hidden'>  
             <div className='flex items-center gap-4 flex-1 min-w-0'>
@@ -21,11 +22,10 @@ export function VideoCard({
                         <img
                             src={item.metadata.thumbnail}
                             alt="thumbnail"
-                            className='w-full h-full object-cover'
+                            className='w-full h-full object-cover [image-rendering:smooth]'
                         />
                     )}
                 </div>
-
                 {/* Metadata */}
                 <div className='flex flex-col gap-2 flex-1 min-w-0'>
 

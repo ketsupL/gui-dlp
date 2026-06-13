@@ -5,6 +5,7 @@ export type DownloadSettings = {
     videoQuality: string
     fileExtension: string
     outputFolder: string
+    cookieBrowser?: string
 }
 
 export type YtDlpProgress = {
@@ -20,21 +21,48 @@ export type DownloadProgress = YtDlpProgress & {
 }
 
 function parseYtDlpProgress(line: string): YtDlpProgress | null {
-    const match = line.match(
-        /\[download\]\s+(\d+(?:\.\d+)?)%.*?of\s+([\d.]+\w+).*?at\s+([\w./]+).*?ETA\s+([\w:]+)/
-    )
-
-    if (!match) return null
-
-    const [, percent, size, speed, eta] = match
-
-    return {
-        percent: Number(percent),
-        size,
-        speed,
-        eta,
-        raw: line
+    // 1. Catch Cache Hits (File already exists)
+    if (line.includes('has already been downloaded')) {
+        return { percent: 100, size: null, speed: null, eta: 'Done', raw: line }
     }
+
+    // 2. Catch the FFmpeg Extraction Phase (Crucial for Audio-Only!)
+    if (
+        line.includes('[ffmpeg]') ||
+        line.includes('[ExtractAudio]') ||
+        line.includes('[Merger]') ||
+        line.includes('[Fixup]')
+    ) {
+        return {
+            percent: 99,
+            size: null,
+            speed: null,
+            eta: 'Converting...', // Tells the user it's processing
+            raw: line
+        }
+    }
+
+    // 3. A much looser Regex that won't break on fast audio downloads
+    const percentMatch = line.match(/\[download\]\s+(\d+(?:\.\d+)?)%/)
+    
+    if (percentMatch) {
+        const percent = Number(percentMatch[1])
+
+        // Parse the other stats independently so if one fails, the percentage still updates
+        const sizeMatch = line.match(/of\s+~?\s*([\d.]+\s*\w+)/)
+        const speedMatch = line.match(/at\s+([\w./]+\s*\w*\/s|Unknown\s*B\/s)/)
+        const etaMatch = line.match(/ETA\s+([\w:]+)/)
+
+        return {
+            percent,
+            size: sizeMatch ? sizeMatch[1].trim() : null,
+            speed: speedMatch ? speedMatch[1].trim() : null,
+            eta: etaMatch ? etaMatch[1].trim() : null,
+            raw: line
+        }
+    }
+
+    return null
 }
 
 export class YtDlpSpawner {
@@ -72,7 +100,6 @@ export class YtDlpSpawner {
     private static buildArgs(url: string, settings: DownloadSettings) {
         const args = [url, '--newline']
 
-        // 1. Fixed the string checks to match your AppSidebar values
         if (settings.downloadMode === 'video') {
             const quality = settings.videoQuality === 'best' ? '' : `[height<=${settings.videoQuality}]`
             args.push('-f', 
@@ -100,6 +127,10 @@ export class YtDlpSpawner {
             args.push('--merge-output-format', settings.fileExtension)
         }
 
+        if (settings.outputFolder && settings.outputFolder.trim() !== '') {
+            args.push('-P', settings.outputFolder)
+        }
+
         args.push('-o', '%(title)s.%(ext)s')
         
         return args
@@ -112,7 +143,7 @@ export class YtDlpSpawner {
     ): Promise<void> {
         return new Promise((resolve, reject) => {
             const args = this.buildArgs(url, settings)
-            const child = spawn(this.ytdlpPath, args, { windowsHide: true, cwd: settings.outputFolder })
+            const child = spawn(this.ytdlpPath, args, { windowsHide: true})
             
             let errorOutput = ''
             let buffer = ''
