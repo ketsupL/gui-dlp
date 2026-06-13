@@ -1,8 +1,8 @@
 import path from 'path'
-import { app, ipcMain } from 'electron'
+import { app, ipcMain, dialog } from 'electron'
 import serve from 'electron-serve'
 import { createWindow } from './helpers/create-window'
-import { YtDlpSpawner, DownloadSettings } from './helpers/ytdlp'
+import { YtDlpSpawner, DownloadSettings, DownloadProgress } from './helpers/ytdlp'
 
 const isProd = process.env.NODE_ENV === 'production'
 
@@ -31,6 +31,22 @@ if (isProd) {
     mainWindow.webContents.openDevTools()
   }
   
+  //Default Path
+  ipcMain.handle('ytdlp:getDefaultPath', () => {
+      return app.getPath('downloads');
+  });
+
+  //Folder Picker
+  ipcMain.handle('ytdlp:selectFolder', async () => {
+      const result = await dialog.showOpenDialog({
+          properties: ['openDirectory', 'createDirectory'],
+          title: 'Select Download Folder'
+      });
+
+      if (result.canceled) return null;
+      
+      return result.filePaths[0]; 
+  });
 
   // Metadata
   ipcMain.handle('ytdlp:getMetadata', async (event, url: string) => {
@@ -43,10 +59,10 @@ if (isProd) {
   })
 
   //Download
-  ipcMain.handle('ytdlp:download', async (event, url: string, settings: DownloadSettings) => {
+  ipcMain.handle('ytdlp:download', async (event, id: string, url: string, settings: DownloadSettings) => {
     try {
       await YtDlpSpawner.download(url, settings, (progress) => {
-        event.sender.send('ytdlp:progress', progress)
+        event.sender.send('ytdlp:progress', {id, ...progress} satisfies DownloadProgress)
       })
       return { success: true }
     } catch (error: any) {

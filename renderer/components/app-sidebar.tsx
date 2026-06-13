@@ -1,5 +1,5 @@
 
-import { useSettings } from './settings-provider' 
+import { useSettings } from '../providers/download-settings-provider' 
 import { 
   Sidebar, 
   SidebarContent, 

@@ -1,12 +1,13 @@
 import { spawn } from 'child_process'
 
 export type DownloadSettings = {
-    downloadMode: string;
-    videoQuality: string;
-    fileExtension: string;
+    downloadMode: string
+    videoQuality: string
+    fileExtension: string
+    outputFolder: string
 }
 
-export type DownloadProgress = {
+export type YtDlpProgress = {
     percent: number
     speed: string | null
     eta: string | null
@@ -14,14 +15,18 @@ export type DownloadProgress = {
     raw?: string
 }
 
-function parseYtDlpProgress(line: string): DownloadProgress | null {
+export type DownloadProgress = YtDlpProgress & {
+    id: string
+}
+
+function parseYtDlpProgress(line: string): YtDlpProgress | null {
     const match = line.match(
         /\[download\]\s+(\d+(?:\.\d+)?)%.*?of\s+([\d.]+\w+).*?at\s+([\w./]+).*?ETA\s+([\w:]+)/
     )
 
     if (!match) return null
 
-    const [percent, size, speed, eta] = match
+    const [, percent, size, speed, eta] = match
 
     return {
         percent: Number(percent),
@@ -67,12 +72,13 @@ export class YtDlpSpawner {
     private static buildArgs(url: string, settings: DownloadSettings) {
         const args = [url, '--newline']
 
-        if (settings.downloadMode === 'video only') {
+        // 1. Fixed the string checks to match your AppSidebar values
+        if (settings.downloadMode === 'video') {
             const quality = settings.videoQuality === 'best' ? '' : `[height<=${settings.videoQuality}]`
             args.push('-f', 
                 `bestvideo${quality}[ext=${settings.fileExtension}]`
             )
-        } else if (settings.downloadMode === 'audio only') {
+        } else if (settings.downloadMode === 'audio') {
             args.push('-f',
                 'bestaudio',
                 '--extract-audio',
@@ -80,10 +86,18 @@ export class YtDlpSpawner {
             )
         } else {
             const quality = settings.videoQuality === 'best' ? '' : `[height<=${settings.videoQuality}]`
-            args.push('-f', 
-                `bestvideo${quality}+bestaudio/best`,
-                '--merge-output-format', settings.fileExtension
-            )
+
+            if (settings.fileExtension === 'mp4') {
+                args.push('-f', 
+                    `bestvideo${quality}[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best`
+                )
+            } else {
+                args.push('-f', 
+                    `bestvideo${quality}+bestaudio/best`
+                )
+            }
+            
+            args.push('--merge-output-format', settings.fileExtension)
         }
 
         args.push('-o', '%(title)s.%(ext)s')
@@ -92,13 +106,13 @@ export class YtDlpSpawner {
     }
 
     static download(
-        url:string, 
+        url:string,
         settings: DownloadSettings, 
-        onProgress: (progress: DownloadProgress) => void
+        onProgress: (progress: YtDlpProgress) => void
     ): Promise<void> {
         return new Promise((resolve, reject) => {
             const args = this.buildArgs(url, settings)
-            const child = spawn(this.ytdlpPath, args, { windowsHide: true });
+            const child = spawn(this.ytdlpPath, args, { windowsHide: true, cwd: settings.outputFolder })
             
             let errorOutput = ''
             let buffer = ''

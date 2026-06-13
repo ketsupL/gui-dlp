@@ -19,9 +19,14 @@ const handler = {
 contextBridge.exposeInMainWorld('ipc', handler)
 
 contextBridge.exposeInMainWorld('ytdlpApi', {
+  getDefaultPath: () => ipcRenderer.invoke('ytdlp:getDefaultPath'),
+  
+  selectFolder: () => ipcRenderer.invoke('ytdlp:selectFolder'),
+  
   getMetadata: (url: string) => ipcRenderer.invoke('ytdlp:getMetadata', url),
 
-  download: (url: string, settings: DownloadSettings) => ipcRenderer.invoke('ytdlp:download', url, settings),
+  download: (id: string, url: string, settings: DownloadSettings) => 
+        ipcRenderer.invoke('ytdlp:download', id, url, settings),
 
   onProgress: (callback: (progress: DownloadProgress) => void) => {
     const listener = (_event: IpcRendererEvent, progress: DownloadProgress) => {
@@ -32,7 +37,7 @@ contextBridge.exposeInMainWorld('ytdlpApi', {
     return () => {
       ipcRenderer.removeListener('ytdlp:progress', listener)
     }
-  }
+  },
 })
 
 export type IpcHandler = typeof handler
