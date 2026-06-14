@@ -14,7 +14,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     <AppSidebar />
                     <div className="flex flex-col flex-1 min-w-0 h-screen">
                         <AppHeader />
-                            <main className="flex-1 p-8 overflow-auto">
+                            <main className="flex-1 p-4 overflow-auto">
                                 {children}
                             </main>
                         <AppFooter />

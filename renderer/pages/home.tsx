@@ -5,7 +5,7 @@ import { useQueue } from '../providers/queue-provider'
 import { VideoCard } from '@/components/video-card'
 
 export default function HomePage() {
-  const { queue, startSingleDownload, deleteUrlFromQueue } = useQueue()
+  const { queue, startSingleDownload, deleteUrlFromQueue, updateDownloadSettings } = useQueue()
 
   if (queue.length === 0) {
     return (
@@ -27,6 +27,7 @@ export default function HomePage() {
             item={item}
             onDownload={startSingleDownload}
             onDelete={deleteUrlFromQueue}
+            onUpdate={updateDownloadSettings}
           />
         ))}
       </div>

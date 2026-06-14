@@ -7,10 +7,12 @@ export function VideoCard({
     item,
     onDownload,
     onDelete,
+    onUpdate,
 }: {
     item: QueueItem 
     onDownload: (id: string) => void
     onDelete: (id: string) => void
+    onUpdate: (id: string, settings: any) => void
 }) {
     console.log('item: ', item.metadata?.thumbnail)
     return (

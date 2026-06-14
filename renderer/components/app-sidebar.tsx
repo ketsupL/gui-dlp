@@ -7,11 +7,18 @@ import {
   SidebarGroupLabel,
   SidebarGroupContent
 } from "@/components/ui/sidebar"
-import { Button } from "./ui/button" // <-- Make sure to import your Button!
+import { Button } from "./ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export function AppSidebar() {
   const { settings, setSettings } = useSettings()
-  const { downloadMode, videoQuality, fileExtension, outputFolder } = settings // <-- Extract outputFolder
+  const { downloadMode, videoQuality, fileExtension, outputFolder } = settings
 
   const handleSettingChange = (field: string, value: string) => {
     setSettings(prev => ({
@@ -34,11 +41,9 @@ export function AppSidebar() {
     })
   }
 
-  // NEW: OS Folder Picker Handler
   const handleSelectFolder = async () => {
     try {
       const folderPath = await window.ytdlpApi.selectFolder()
-      // selectFolder returns null if the user clicks "Cancel" in the dialog
       if (folderPath) {
         handleSettingChange('outputFolder', folderPath)
       }
@@ -57,58 +62,77 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>Settings</SidebarGroupLabel>
           <SidebarGroupContent className="p-4 flex flex-col gap-4">
-            
-            {/* ... Your existing Download Mode ... */}
+
             <div>
               <label className="text-sm font-medium mb-1 block">Download Mode</label>
-              <select 
-                className="w-full p-2 border rounded-md bg-white text-black text-sm outline-none cursor-pointer"
+              <Select
                 value={downloadMode}
-                onChange={(e) => handleModeChange(e.target.value)}
-              >
-                <option value="video+audio">Video + Audio</option>
-                <option value="video">Video Only</option>
-                <option value="audio">Audio Only</option>
-              </select>
-            </div>
-
-            {/* ... Your existing Video Quality ... */}
-            <div>
-              <label className="text-sm font-medium mb-1 block">Video Quality</label>
-              <select 
-                className="w-full p-2 border rounded-md bg-white text-black text-sm outline-none cursor-pointer disabled:opacity-50"
-                value={videoQuality}
-                onChange={(e) => handleSettingChange('videoQuality', e.target.value)}
+                onValueChange={(value) =>
+                  handleSettingChange("downloadMode", value)
+                }
                 disabled={downloadMode === 'audio'} 
               >
-                <option value="best">Best</option>
-                <option value="1080p">1080p</option>
-                <option value="720p">720p</option>
-              </select>
+                <SelectTrigger className="w-full disabled:opacity-50">
+                  <SelectValue placeholder="Select video quality" />
+                </SelectTrigger>
+
+                <SelectContent className='w-full'>
+                    <SelectItem value="video+audio">Video + Audio</SelectItem>
+                    <SelectItem value="video">Video Only</SelectItem>
+                    <SelectItem value="audio">Audio Only</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* ... Your existing Extension ... */}
+            <div>
+              <label className="text-sm font-medium mb-1 block">Video Quality</label>
+              <Select
+                value={videoQuality}
+                onValueChange={(value) =>
+                  handleSettingChange("videoQuality", value)
+                }
+                disabled={downloadMode === 'audio'} 
+              >
+                <SelectTrigger className="w-full disabled:opacity-50">
+                  <SelectValue placeholder="Select video quality" />
+                </SelectTrigger>
+
+                <SelectContent className='w-full'>
+                    <SelectItem value="best">Best</SelectItem>
+                    <SelectItem value="1080p">1080p</SelectItem>
+                    <SelectItem value="720p">1080p</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <div>
               <label className="text-sm font-medium mb-1 block">Extension</label>
-              <select 
-                className="w-full p-2 border rounded-md bg-white text-black text-sm outline-none cursor-pointer"
+              <Select
                 value={fileExtension}
-                onChange={(e) => handleSettingChange('fileExtension', e.target.value)}
+                onValueChange={(value) =>
+                  handleSettingChange("fileExtension", value)
+                }
               >
-                {downloadMode === 'audio' ? (
-                  <>
-                    <option value="mp3">mp3</option>
-                    <option value="m4a">m4a</option>
-                    <option value="wav">wav</option>
-                  </>
-                ) : (
-                  <>
-                    <option value="mp4">mp4</option>
-                    <option value="mkv">mkv</option>
-                    <option value="webm">webm</option>
-                  </>
-                )}
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select extension" />
+                </SelectTrigger>
+
+                <SelectContent className='w-full'>
+                  {downloadMode === "audio" ? (
+                    <>
+                      <SelectItem value="mp3">mp3</SelectItem>
+                      <SelectItem value="m4a">m4a</SelectItem>
+                      <SelectItem value="wav">wav</SelectItem>
+                    </>
+                  ) : (
+                    <>
+                      <SelectItem value="mp4">mp4</SelectItem>
+                      <SelectItem value="mkv">mkv</SelectItem>
+                      <SelectItem value="webm">webm</SelectItem>
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="pt-2 border-t mt-2">

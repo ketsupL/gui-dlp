@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react"
 import { useSettings } from "./download-settings-provider"
+import { DownloadSettings } from "../../main/helpers/ytdlp"
+
 
 export type QueueItem = {
     id: string
@@ -14,6 +16,7 @@ interface QueueContextType {
     queue: QueueItem[]
     addUrlToQueue: (url: string) => Promise<void>
     deleteUrlFromQueue: (id: string) => void
+    updateDownloadSettings: (id: string, settings: any) => void
     startSingleDownload: (id: string) => Promise<void>
     startBatchDownload: () => Promise<void>
 }
@@ -62,6 +65,10 @@ export function QueueProvider({ children }: { children: ReactNode }) {
         setQueue((prev) =>
             prev.filter((item) => item.id !== id)
         )
+    }
+
+    const updateDownloadSettings = (id: string, newSettings: any) => {
+
     }
 
     const startSingleDownload = async (id: string) => {
@@ -125,6 +132,7 @@ export function QueueProvider({ children }: { children: ReactNode }) {
                 queue, 
                 addUrlToQueue,
                 deleteUrlFromQueue,
+                updateDownloadSettings,
                 startSingleDownload, 
                 startBatchDownload
             }}
