@@ -68,7 +68,7 @@ export function AppSidebar() {
               <Select
                 value={downloadMode}
                 onValueChange={(value) =>
-                  handleSettingChange("downloadMode", value)
+                  handleModeChange(value)
                 }
                 disabled={downloadMode === 'audio'} 
               >
@@ -100,7 +100,10 @@ export function AppSidebar() {
                 <SelectContent className='w-full'>
                     <SelectItem value="best">Best</SelectItem>
                     <SelectItem value="1080p">1080p</SelectItem>
-                    <SelectItem value="720p">1080p</SelectItem>
+                    <SelectItem value="720p">720p</SelectItem>
+                    <SelectItem value="480p">480p</SelectItem>
+                    <SelectItem value="360p">360p</SelectItem>
+                    <SelectItem value="144p">144p</SelectItem>
                 </SelectContent>
               </Select>
             </div>

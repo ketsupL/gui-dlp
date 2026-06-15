@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+@plugin "daisyui" {
+   themes: light --default, dark --prefersdark;
+ }
+
 @theme inline {
   --font-sans: Geist, "Geist Fallback", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
   --font-heading: var(--font-sans);
@@ -113,7 +117,7 @@
     --sidebar: hsl(220 19% 13%);
     --sidebar-foreground: hsl(220 14% 91%);
     --sidebar-primary: hsl(215 20% 65%);
-    --sidebar-primary-foreground: hsl(220 19% 13%);
+    --sidebar-primary-foreground: hsl(220, 18%, 10%);
     --sidebar-accent: hsl(218 16% 23%);
     --sidebar-accent-foreground: hsl(220 14% 91%);
     --sidebar-border: hsl(218 16% 23%);
