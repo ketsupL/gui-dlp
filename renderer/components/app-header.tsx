@@ -1,24 +1,26 @@
 "use client"
 import React, { useState } from 'react'
 import { Input } from '@/components/ui/input'
+import { Button } from './ui/button'
 import { useQueue } from '../providers/queue-provider'
+import { ExternalLink } from 'lucide-react'
 
 export function AppHeader() {
     const [url, setUrl] = useState("")
     const { addUrlToQueue } = useQueue()
     const [isFetching, setIsFetching] = useState(false)
 
-    const handleEnter = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key == 'Enter' && url.trim() !== "") {
-            e.preventDefault()
-            console.log("User pressed enter! Ready to fetch:", url)
-            setIsFetching(true)
+    const handleFetch = async () => {
+        if (!url.trim()) return
+        setIsFetching(true)
+        await addUrlToQueue(url)
+        setUrl('')
+        setIsFetching(false)
+    }
 
-            await addUrlToQueue(url)
-
-            setUrl('')
-
-            setIsFetching(false)
+    const handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key == 'Enter') {
+            handleFetch
         }
     }
     
@@ -34,6 +36,11 @@ export function AppHeader() {
                 onKeyDown={handleEnter}
                 disabled={isFetching}
             />
+            <Button
+                onClick={handleFetch}
+            >
+                <ExternalLink /> Fetch
+            </Button>
         </div>
     )
 }

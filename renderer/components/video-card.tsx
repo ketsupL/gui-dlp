@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useEffect } from "react"
 
 export function VideoCard({
     item,
@@ -26,7 +27,7 @@ export function VideoCard({
         downloadMode,
         videoQuality,
         fileExtension,
-    } = item.settings || {} // Added a fallback just in case it's undefined initially
+    } = item.settings || {}
 
     const handleSettingChange = (key: string, value: string) => {
         const updates: any = { [key]: value }
@@ -50,6 +51,27 @@ export function VideoCard({
         ...new Set(videoFormats.map((f: any) => f.height))
     ].sort((a: any, b: any) => b - a)
 
+    useEffect(() => {
+        if (!item.metadata || videoQualities.length === 0 || videoQuality === 'best') return
+
+        const targetQuality = parseInt(videoQuality, 10)
+        if (isNaN(targetQuality)) return
+
+        if (!videoQualities.includes(targetQuality)) {
+            const nearestQuality = videoQualities.reduce((prev: any, curr: any) => {
+                return Math.abs(curr - targetQuality) < Math.abs(prev - targetQuality)
+                    ? curr
+                    : prev
+            })
+
+            const nearestString = nearestQuality.toString()
+
+            if (nearestString !== targetQuality){
+                onUpdate(item.id, {videoQuality: nearestString})
+            }
+        }
+    }, [item.id, item.metadata, videoQuality, videoQualities.join(',')])
+
     return (
         <Card className='flex flex-row items-center justify-between p-4 gap-4 overflow-hidden'>  
             <div className='flex items-center gap-4 flex-1 min-w-0'>
@@ -72,15 +94,15 @@ export function VideoCard({
                     </div>
 
                     {/* Local Settings */}
-                    <div className="flex flex-row items-center gap-4 mt-2">
+                    <div className="flex flex-row flex-1 items-center gap-4 mt-2">
                         
                         {/* Download Mode */}
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                             <Select
                                 value={downloadMode}
                                 onValueChange={(value) => handleSettingChange("downloadMode", value)}
                             >
-                                <SelectTrigger>
+                                <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Select mode" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -92,13 +114,13 @@ export function VideoCard({
                         </div>
 
                         {/* Video Quality */}
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                             <Select
                                 value={videoQuality}
                                 onValueChange={(value) => handleSettingChange("videoQuality", value)}
                                 disabled={downloadMode === "audio"}
                             >
-                                <SelectTrigger>
+                                <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Select quality" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -113,12 +135,12 @@ export function VideoCard({
                         </div>
 
                         {/* Extension */}
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                             <Select
                                 value={fileExtension}
                                 onValueChange={(value) => handleSettingChange("fileExtension", value)}
                             >
-                                <SelectTrigger>
+                                <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Select format" />
                                 </SelectTrigger>
                                 <SelectContent>
