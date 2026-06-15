@@ -70,7 +70,6 @@
     --ring: hsl(215 25% 27%);
     --radius: 0.5rem;
     
-    /* Kept your sidebar & chart variables as fallbacks to prevent breaking missing components */
     --chart-1: hsl(220 14% 60%);
     --chart-2: hsl(220 14% 50%);
     --chart-3: hsl(220 14% 40%);
@@ -106,8 +105,6 @@
     --border: hsl(218 16% 23%);
     --input: hsl(218 16% 23%);
     --ring: hsl(215 20% 65%);
-    
-    /* Kept your sidebar & chart variables as fallbacks */
     --chart-1: hsl(220 14% 60%);
     --chart-2: hsl(220 14% 50%);
     --chart-3: hsl(220 14% 40%);

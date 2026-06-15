@@ -21,12 +21,10 @@ export type DownloadProgress = YtDlpProgress & {
 }
 
 function parseYtDlpProgress(line: string): YtDlpProgress | null {
-    // 1. Catch Cache Hits (File already exists)
     if (line.includes('has already been downloaded')) {
         return { percent: 100, size: null, speed: null, eta: 'Done', raw: line }
     }
 
-    // 2. Catch the FFmpeg Extraction Phase (Crucial for Audio-Only!)
     if (
         line.includes('[ffmpeg]') ||
         line.includes('[ExtractAudio]') ||
@@ -37,18 +35,16 @@ function parseYtDlpProgress(line: string): YtDlpProgress | null {
             percent: 99,
             size: null,
             speed: null,
-            eta: 'Converting...', // Tells the user it's processing
+            eta: 'Converting...',
             raw: line
         }
     }
 
-    // 3. A much looser Regex that won't break on fast audio downloads
     const percentMatch = line.match(/\[download\]\s+(\d+(?:\.\d+)?)%/)
     
     if (percentMatch) {
         const percent = Number(percentMatch[1])
 
-        // Parse the other stats independently so if one fails, the percentage still updates
         const sizeMatch = line.match(/of\s+~?\s*([\d.]+\s*\w+)/)
         const speedMatch = line.match(/at\s+([\w./]+\s*\w*\/s|Unknown\s*B\/s)/)
         const etaMatch = line.match(/ETA\s+([\w:]+)/)
@@ -103,7 +99,7 @@ export class YtDlpSpawner {
         if (settings.downloadMode === 'video') {
             const quality = settings.videoQuality === 'best' ? '' : `[height<=${settings.videoQuality}]`
             args.push('-f', 
-                `bestvideo${quality}[ext=${settings.fileExtension}]`
+                `bestvideo${quality}[ext=${settings.fileExtension}]/bestvideo/best`
             )
         } else if (settings.downloadMode === 'audio') {
             args.push('-f',
@@ -133,6 +129,7 @@ export class YtDlpSpawner {
 
         args.push('-o', '%(title)s.%(ext)s')
         
+        console.log(args)
         return args
     }
 
