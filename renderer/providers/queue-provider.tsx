@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react"
+import { createContext, useContext, ReactNode } from "react"
 import { useSettings } from "./download-settings-provider"
 import { DownloadSettings } from "../../main/helpers/ytdlp"
 import { useQueueState } from "@/hooks/use-queue-state"
@@ -20,7 +20,7 @@ interface QueueContextType {
     addUrlToQueue: (url: string) => Promise<void>
     deleteUrlFromQueue: (id: string) => void
     updateDownloadSettings: (id: string, newSettings: Partial<DownloadSettings>) => void
-    startSingleDownload: (id: string) => Promise<void>
+    startSingleDownload: (item: QueueItem) => Promise<void>
     startBatchDownload: () => Promise<void>
 }
 

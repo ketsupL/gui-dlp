@@ -11,36 +11,33 @@ export function useDownloadManager(queue: QueueItem[], updateItemState: (id: str
         return cleanup
     }, [updateItemState])
 
-    const startSingleDownload = useCallback(async (id: string) => {
-        const item = queue.find((q) => q.id === id)
-        
-        if (!item) return
-
-        updateItemState(id, {
+    const startSingleDownload = useCallback(async (item: QueueItem) => {
+        updateItemState(item.id, {
             status: 'downloading',
             progress: 0,
             eta: 'Calculating...',
         })
 
         try {
-            const result = await window.ytdlpApi.download(id, item.url, item.settings)
+            const result = await window.ytdlpApi.download(item.id, item.url, item.settings)
 
-            updateItemState(id, {
+            updateItemState(item.id, {
                 status: result.success ? 'completed' : 'error',
                 progress: result.success ? 100 : item.progress
             })
+
         } catch (error) {
-            console.error(`Download failed for ${id}: `, error)
-            updateItemState(id, { status: 'error', })
+            console.error(`Download failed for ${item.id}: `, error)
+            updateItemState(item.id, { status: 'error', })
         }
 
-    }, [queue, updateItemState])
+    }, [updateItemState])
 
     const startBatchDownload = useCallback(async () => {
         const pendingItems = queue.filter((q) => q.status === 'idle' || q.status === 'error')
 
         for (const item of pendingItems) {
-            startSingleDownload(item.id)
+            startSingleDownload(item)
         }
 
     }, [queue, startSingleDownload])

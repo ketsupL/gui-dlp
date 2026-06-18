@@ -53,7 +53,7 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar>
+    <Sidebar className='bg-sidebar'>
       <SidebarHeader className="h-20 p-4 border-b justify-center">
         <h2 className="text-xl font-bold">GUI-DLP</h2>
       </SidebarHeader>

@@ -2,6 +2,7 @@
 import React, { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from './ui/button'
+import { Spinner } from './ui/spinner'
 import { useQueue } from '../providers/queue-provider'
 import { ExternalLink } from 'lucide-react'
 
@@ -36,11 +37,20 @@ export function AppHeader() {
                 onKeyDown={handleEnter}
                 disabled={isFetching}
             />
-            <Button
-                onClick={handleFetch}
-            >
-                <ExternalLink /> Fetch
+            <Button onClick={handleFetch}>
+                {isFetching ? (
+                        <>
+                            <Spinner/>
+                            Fetching...
+                        </>
+                    ) : (
+                        <>
+                            <ExternalLink /> Fetch
+                        </>
+                    )
+                }
             </Button>
+            
         </div>
     )
 }

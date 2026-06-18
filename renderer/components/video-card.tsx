@@ -64,10 +64,8 @@ export function VideoCard({
                     : prev
             })
 
-            const nearestString = nearestQuality.toString()
-
-            if (nearestString !== targetQuality){
-                onUpdate(item.id, {videoQuality: nearestString})
+            if (nearestQuality !== targetQuality){
+                onUpdate(item.id, {videoQuality: nearestQuality.toString()})
             }
         }
     }, [item.id, item.metadata, videoQuality, videoQualities.join(',')])
